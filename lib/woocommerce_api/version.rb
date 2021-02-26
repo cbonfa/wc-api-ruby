@@ -1,3 +1,3 @@
 module WooCommerce
-  VERSION = '1.4.0'
+  VERSION = '4.7.1' #
 end
