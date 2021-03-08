@@ -45,6 +45,33 @@ module WooCommerce
       do_request :get, add_query_params(endpoint, query)
     end
 
+    def get_product product_id
+      result = self.get("products/#{product_id}")
+      begin
+        result.parsed_response
+      rescue
+        # WooCommerce return problem.
+        result = result.to_s.split('{')
+        JSON.parse('{' + result.drop(1).join('{'))
+      end
+    end
+
+    def get_attributes
+      self.get("products/attributes")
+    end
+
+    def get_attributes_terms attribute_id
+      self.get("products/attributes/#{attribute_id}/terms?per_page=100")
+    end
+
+    def get_variations product_id
+      self.get("products/#{product_id}/variations")
+    end
+
+    def get_variation product_id, variation_id
+      self.get("products/#{product_id}/variations/#{variation_id}")
+    end
+
     # Public: POST requests.
     #
     # endpoint - A String naming the request endpoint.
@@ -55,6 +82,18 @@ module WooCommerce
       do_request :post, endpoint, data
     end
 
+    def create_product data
+      self.post("products", data)
+    end
+
+    def create_variation product_id, data
+      self.post("products/#{product_id}/variations", data)
+    end
+
+    def create_attributes_terms attribute_id, nome
+      self.post("products/attributes/#{attribute_id}/terms", { name: nome })
+    end
+
     # Public: PUT requests.
     #
     # endpoint - A String naming the request endpoint.
@@ -63,6 +102,14 @@ module WooCommerce
     # Returns the request Hash.
     def put endpoint, data
       do_request :put, endpoint, data
+    end
+
+    def update_product product_id, data
+      self.put("products/#{product_id}", data)
+    end
+
+    def update_variation product_id, variation_id, data
+      self.put("products/#{product_id}/variations/#{variation_id}", data)
     end
 
     # Public: DELETE requests.
@@ -158,7 +205,6 @@ module WooCommerce
 
       options.merge!(debug_output: $stdout) if @debug_mode
       options.merge!(body: data.to_json) if !data.empty?
-
       HTTParty.send(method, url, options)
     end
 
